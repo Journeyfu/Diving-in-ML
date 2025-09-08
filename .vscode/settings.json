@@ -1,0 +1,9 @@
+{
+    "python.defaultInterpreterPath": "C:/Users/gkn5124/.conda/envs/fewshot/python.exe",
+    "python.terminal.executeInFileDir": false,
+    "python.terminal.activateEnvironment": true,
+    "terminal.integrated.env.windows": {
+        "PYTHONPATH": "${workspaceFolder}"
+    },
+    "python.envFile": "${workspaceFolder}/.env"
+}
