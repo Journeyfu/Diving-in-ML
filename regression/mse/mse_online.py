@@ -6,6 +6,8 @@ class MSE_Online:
     def __init__(self, ):
         self.W = None
     
+    def predict(self, X): # X: n x d
+        return X @ self.W
     
     def LSE_fit(self, X, y, lr=0.01):
         num_samples = X.shape[0]

@@ -15,6 +15,31 @@ class MSE_Solver:
         # self.lr, self.num_iters = 0.1, 20
         self.lr, self.num_iters = 0.01, 150
 
+    def predict(self, X): # X: n x d
+        return X @ self.W
+    
+    def Lasso_fit(self, X_expand, y, L1_lambda=1):
+        self.W = np.random.randn(X_expand.shape[1], 1) * 0.01
+        # the scale of y doesn't change
+        # my version
+        for it in range(self.num_iters):
+            for j in range(self.W.shape[0]):
+                r_ij = y - (X_expand @ self.W) + X_expand[:, j:j+1] * self.W[j:j+1] # Nx1
+                
+                norm_j = (X_expand[:, j:j+1]**2).sum(axis=0)
+
+                z_j = (X_expand[:, j:j+1].T @ r_ij).sum()
+                # z_j = (r_ij * X_expand[:, j:j+1]).sum() # same form
+
+                self.W[j] = self.soft_threshold(z_j, L1_lambda / 2.)/ norm_j
+    
+    def ridge_fit(self, X_expand, y, l2_lambda=1., bias_reg=False):
+        self.W = None
+        L2_regularization = l2_lambda * np.eye(X_expand.shape[1])
+        if not bias_reg:
+            L2_regularization[-1, -1] = 0  # Do not regularize the bias term
+
+        self.W = np.linalg.inv(X_expand.T @ X_expand + L2_regularization ) @ X_expand.T @ y
 
     def soft_threshold(self, rho, lam):
         return np.sign(rho) * max(abs(rho) - lam, 0)
@@ -50,10 +75,8 @@ class MSE_Solver:
         c_list = ['b', 'g', 'r', 'c', 'm']
         handles = []
         for idx, l2_lambda in enumerate([1, 10, 100, 10000]):
-            L2_regularization = l2_lambda * np.eye(X_expand.shape[1])
-            L2_regularization[-1, -1] = 0  # Do not regularize the bias term
 
-            self.W = np.linalg.inv(X_expand.T @ X_expand + L2_regularization ) @ X_expand.T @ y
+            self.ridge_fit(X_expand, y, l2_lambda=l2_lambda)
             y_hat = X_expand @ self.W
 
             ax.plot_trisurf(X[:,0], X[:,1], y_hat.flatten(),
@@ -64,23 +87,11 @@ class MSE_Solver:
         ax.legend(handles=handles, loc="lower right", fontsize=8)
 
         ## L1 regularization + standardization (Coordinate Descent)
-        self.W = np.random.randn(X_expand.shape[1], 1) * 0.01
+
         X_norm = (X - X.mean(axis=0, keepdims=True)) / X.std(axis=0, keepdims=True)
         X_expand = np.hstack((X_norm, np.ones((X.shape[0], 1))))
-        # the scale of y doesn't change
 
-        L1_lambda = 1
-        # my version
-        for it in range(self.num_iters):
-            for j in range(self.W.shape[0]):
-                r_ij = y - (X_expand @ self.W) + X_expand[:, j:j+1] * self.W[j:j+1] # Nx1
-                
-                norm_j = (X_expand[:, j:j+1]**2).sum(axis=0)
-
-                z_j = (X_expand[:, j:j+1].T @ r_ij).sum()
-                # z_j = (r_ij * X_expand[:, j:j+1]).sum() # same form
-
-                self.W[j] =  self.soft_threshold(z_j, L1_lambda / 2.)/ norm_j
+        self.Lasso_fit(X_expand, y)
 
         y_hat = X_expand @ self.W 
 
@@ -132,14 +143,12 @@ class MSE_Solver:
         ax.set_zlabel("y")
         ax.set_title("sklearn L1 Regularization")
         
-
         # plt.tight_layout()
-
         plt.show()
 
 
 if __name__ == "__main__":
-    X, y = get_3d_noise_linear_data(100, outlier_fraction=0.3,  seed=42) 
+    X, y = get_3d_noise_linear_data(100, outlier_fraction=0.,  seed=42) 
 
     mse = MSE_Solver()
     mse.fit_3d_data(X, y)

@@ -86,11 +86,11 @@ def get_3d_noise_linear_data(n, outlier_fraction=0, seed=42):
     rng = np.random.default_rng(seed)
     
     # 两个特征
-    # X1 = rng.uniform(-50, 50, n)
-    # X2 = rng.uniform(-50, 50, n)
+    X1 = rng.uniform(-50, 50, n)
+    X2 = rng.uniform(-50, 50, n)
     
-    X1 = np.linspace(-50, 50, n)
-    X2 = np.linspace(-50, 50, n)
+    # X1 = np.linspace(-50, 50, n)
+    # X2 = np.linspace(-50, 50, n)
     
     # 线性关系：y = 2*X1 - 3*X2 + 10 + 高斯噪声
     y = 2*X1 - 3*X2 + 10 + rng.normal(0, 10, n)

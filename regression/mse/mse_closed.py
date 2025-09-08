@@ -6,6 +6,9 @@ class MSE_Solver:
     def __init__(self,):
         self.W = None
         self.lr, self.num_iters = 0.1, 2000
+
+    def predict(self, X): # X: n x d
+        return X @ self.W
         
     def fit(self, X, y):
         X_expand = np.hstack((X, np.ones((X.shape[0], 1))))
