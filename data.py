@@ -107,6 +107,12 @@ def get_3d_noise_linear_data(n, outlier_fraction=0, seed=42):
     return X, y
 
 
+def get_onehot(y):
+    num_classes = np.max(y) + 1
+    y_onehot = np.zeros((y.shape[0], num_classes))
+    y_onehot[np.arange(y.shape[0]), y] = 1
+    return y_onehot
+
 
 
 if __name__ == "__main__":
