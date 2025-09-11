@@ -17,13 +17,10 @@ class GDA():
         # estimate prior
         nsamples = np.bincount(y.flatten())
         self.priors =  nsamples.astype(float) / y.shape[0]
-
         # estimate mus
         self.mus = (X.T @ onehot).T / nsamples.reshape(-1, 1)
-
         # estimate sigma
         self.sigma = (X - self.mus[y.flatten()]).T @ np.diag(self.priors[y.flatten()]) @ (X - self.mus[y.flatten()])
-        
         self.invSigma = np.linalg.inv(self.sigma)  # (p, p)
     
     def predict(self, X):
@@ -41,13 +38,8 @@ class GDA():
         return exp_logits / exp_logits.sum(axis=1, keepdims=True)
 
     def plot_decision_boundary(self, X, y, h=0.02):
-        """
-        X: (n,2) 只支持二维可视化
-        y: (n,) 真实标签
-        h: 网格步长
-        """
         if X.shape[1] != 2:
-            raise ValueError("只能画二维数据的决策边界")
+            raise ValueError("support 2D data only")
 
         x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
         y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
