@@ -3,51 +3,11 @@ from sklearn.metrics import accuracy_score
 from sklearn.datasets import make_classification
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+from classification.linear_svm import LinearSVM
 
-class LinearSVM:
+class KernelSVM(LinearSVM):
     def __init__(self):
-        self.lam = None
-
-        self.b = 0.
-        self.tol = 1e-4
-        self.C = 1.0
-        self.max_iter = 1000
-
-    def select_two_lambda(self, X, y):
-        # select one that violates KKT condition
-        candidates = []
-        for si in range(X.shape[0]):
-            gx = self.get_gx(X, y, si)
-            if 0 < self.lam[si] < self.C and not (1 - self.tol <= y[si] * gx <= 1 + self.tol):
-                candidates.append(si)
-            elif self.lam[si] == 0 and not (y[si] * gx >= 1 - self.tol):
-                candidates.append(si)
-            elif self.lam[si] == self.C and not (y[si] * gx <= 1 + self.tol):
-                candidates.append(si)
-        
-        if len(candidates) == 0:
-            return -1, -1
-
-        l1 = np.random.choice(candidates)
-        
-        # select the second one that has maximum |E1 - E2|
-        e1 = self.error(X, y, l1)
-        max_err, l2 = -1, -1
-        for si in range(X.shape[0]):
-            if si == l1:
-                continue
-            e2 = self.error(X, y, si)
-            if abs(e1 - e2) > max_err:
-                max_err = abs(e1 - e2)
-                l2 = si
-
-        return l1, l2
-    
-    def get_gx(self, X, y, li): # y: (n, )
-        return np.dot(self.lam * y, self.linear_kernel(X, X[li:li+1])) + self.b
-    
-    def error(self, X, y, li):
-        return self.get_gx(X, y, li) - y[li]
+        super().__init__()
 
     def linear_kernel(self, x1, x2): 
         return x1 @ x2.T
@@ -109,6 +69,8 @@ class LinearSVM:
         self.support_lam = self.lam[self.lam > 0]
         if len(self.support_x) == 0:
             print("no support vector found")
+        else:
+            print(f"number of support vectors: {len(self.support_x)}")
         
     def predict(self, X):
         y_hat =  np.sign(np.dot(self.support_lam * self.support_y, self.linear_kernel(self.support_x, X)) + self.b)
@@ -119,14 +81,11 @@ if __name__ == "__main__":
         n_samples=1000, n_features=2, n_informative=2, n_redundant=0, class_sep=3, flip_y=0, n_clusters_per_class=1, random_state=0)
     y = np.where(y==0, -1, 1)  # labels should be in {-1, 1}
     
-    print(X.shape, y.shape) # (1000, 2) (1000,)
     model = LinearSVM()
     model.fit(X, y)
     y_hat = model.predict(X)
     print("Accuracy:", accuracy_score(y, y_hat))
 
-    #plt.scatter(X[y==-1, 0], X[y==-1, 1], c='r', s=10)
-    #plt.scatter(X[y==1, 0], X[y==1, 1], c='b', s=10)
     plt.scatter(X[y_hat==-1, 0], X[y_hat==-1, 1], c='r', s=10)
     plt.scatter(X[y_hat==1, 0], X[y_hat==1, 1], c='b', s=10)
     plt.show()
