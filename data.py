@@ -1,6 +1,9 @@
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from sklearn.datasets import load_iris
+from ucimlrepo import fetch_ucirepo
 
 
 def get_2d_mixture_data(n, n_ctr, seed=42):
@@ -113,7 +116,50 @@ def get_onehot(y):
     y_onehot[np.arange(y.shape[0]), y] = 1
     return y_onehot
 
+def load_iris_data(): # all continuous features
+    iris = load_iris()
+    X = iris.data
+    y = iris.target
+    return X, y
 
+def load_mushroom_data(): 
+    """
+    all categorical features, including 8124 samples
+    2 classes: edible(e) and posionous(p)
+    return: pandas DataFrame
+    """
+    mushroom = fetch_ucirepo(id=73)
+    X = mushroom.data.features
+    y = mushroom.data.targets["poisonous"]
+    return X, y 
+
+
+def load_watermelonv2_data():
+    # Create Zhou Zhihua Watermelon Dataset 2.0 (categorical features) as a pandas DataFrame
+    data = [
+        ("青绿", "蜷缩", "浊响", "清晰", "凹陷", "硬滑", "是"),
+        ("乌黑", "蜷缩", "沉闷", "清晰", "凹陷", "硬滑", "是"),
+        ("乌黑", "蜷缩", "浊响", "清晰", "凹陷", "硬滑", "是"),
+        ("青绿", "蜷缩", "沉闷", "清晰", "凹陷", "硬滑", "是"),
+        ("浅白", "蜷缩", "浊响", "清晰", "凹陷", "硬滑", "是"),
+        ("青绿", "稍蜷", "浊响", "清晰", "稍凹", "软粘", "是"),
+        ("乌黑", "稍蜷", "浊响", "稍糊", "稍凹", "软粘", "是"),
+        ("乌黑", "稍蜷", "浊响", "清晰", "稍凹", "硬滑", "是"),
+
+        ("乌黑", "稍蜷", "沉闷", "稍糊", "稍凹", "硬滑", "否"),
+        ("青绿", "硬挺", "清脆", "清晰", "平坦", "软粘", "否"),
+        ("浅白", "硬挺", "清脆", "模糊", "平坦", "硬滑", "否"),
+        ("浅白", "蜷缩", "浊响", "模糊", "平坦", "软粘", "否"),
+        ("青绿", "稍蜷", "浊响", "稍糊", "凹陷", "硬滑", "否"),
+        ("浅白", "稍蜷", "沉闷", "稍糊", "凹陷", "硬滑", "否"),
+        ("乌黑", "稍蜷", "浊响", "清晰", "稍凹", "软粘", "否"),
+        ("浅白", "蜷缩", "浊响", "模糊", "平坦", "硬滑", "否"),
+        ("青绿", "蜷缩", "沉闷", "稍糊", "稍凹", "硬滑", "否"),
+    ]
+    data = pd.DataFrame(data, columns=["色泽", "根蒂", "敲声", "纹理", "脐部", "触感", "好瓜"])
+    X = data.drop(columns=["好瓜"])   # 特征
+    y = data["好瓜"]                 # 标签
+    return X, y
 
 if __name__ == "__main__":
     # Example usage
