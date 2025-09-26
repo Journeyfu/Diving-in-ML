@@ -95,7 +95,7 @@ class ID3:
 
 
 if __name__ == "__main__":
-    dataset = "mushroom"
+    dataset = "watermelon"
     if dataset == "watermelon":
         X, y = load_watermelonv2_data()
         title = "ID3 Decision Tree on Watermelon v2.0"
@@ -111,9 +111,20 @@ if __name__ == "__main__":
 
     model = ID3() # information gain
     model.fit(X_train, y_train)
-    export_graphviz(model.root, title=title)
+    # export_graphviz(model.root, title=title)
 
     y_hat = model.predict(X_test)
     acc = accuracy_score(y_test, y_hat)
     print(f"Accuracy on testing set: {acc:.4f}")
 
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn.preprocessing import OneHotEncoder
+    enc = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
+    X_train_encoded = enc.fit_transform(X_train)
+    X_test_encoded = enc.transform(X_test)
+
+    sklearn_model = DecisionTreeClassifier(criterion="entropy", random_state=42)
+    sklearn_model.fit(X_train_encoded, y_train)
+    y_sklearn_hat = sklearn_model.predict(X_test_encoded)
+    sklearn_acc = accuracy_score(y_test, y_sklearn_hat)
+    print(f"Sklearn DecisionTreeClassifier Accuracy on testing set: {sklearn_acc:.4f}")

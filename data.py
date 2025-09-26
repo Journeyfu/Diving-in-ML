@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn.datasets import load_iris
 from ucimlrepo import fetch_ucirepo
+import seaborn as sns
 
 
 def get_2d_mixture_data(n, n_ctr, seed=42):
@@ -158,7 +159,59 @@ def load_watermelonv2_data():
     ]
     data = pd.DataFrame(data, columns=["色泽", "根蒂", "敲声", "纹理", "脐部", "触感", "好瓜"])
     X = data.drop(columns=["好瓜"])   # 特征
-    y = data["好瓜"]                 # 标签
+    y = data["好瓜"]                  # 标签
+    return X, y
+
+
+def load_watermelonv2alpha_data():
+    # Create Zhou Zhihua Watermelon Dataset 2.0 alpha (categorical features with missing features) as a pandas DataFrame
+    X, y = load_watermelonv2_data()
+    X.loc[0,  "色泽"] = np.nan
+    X.loc[4,  "色泽"] = np.nan
+    X.loc[12, "色泽"] = np.nan
+    X.loc[8,  "根蒂"] = np.nan
+    X.loc[16, "根蒂"] = np.nan
+    X.loc[2,  "敲声"] = np.nan
+    X.loc[11, "敲声"] = np.nan
+    X.loc[7,  "纹理"] = np.nan
+    X.loc[9,  "纹理"] = np.nan
+    X.loc[5,  "脐部"] = np.nan
+    X.loc[14, "脐部"] = np.nan
+    X.loc[1,  "触感"] = np.nan
+    X.loc[10, "触感"] = np.nan
+    return X, y
+
+def load_watermelonv3_data():
+    # Create Zhou Zhihua Watermelon Dataset 3.0 (mixed features) as a pandas DataFrame
+    Xv2, y = load_watermelonv2_data()
+    data = [
+        (0.697, 0.460),
+        (0.774, 0.376),
+        (0.634, 0.264),
+        (0.608, 0.318),
+        (0.556, 0.215),
+        (0.403, 0.237),
+        (0.481, 0.149),
+        (0.437, 0.211),
+
+        (0.666, 0.091),
+        (0.243, 0.267),
+        (0.245, 0.057),
+        (0.343, 0.099),
+        (0.639, 0.161),
+        (0.657, 0.198),
+        (0.360, 0.370),
+        (0.593, 0.042),
+        (0.719, 0.103),
+    ]
+    X = pd.DataFrame(data, columns=["密度", "含糖率"])
+    X = pd.concat([Xv2, X], axis=1)
+
+    return X, y
+
+def load_titanic_data():
+    titanic = sns.load_dataset("titanic")
+    X, y = titanic.drop(columns=["survived"]), titanic["survived"]
     return X, y
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ from decision_tree.ID3 import ID3
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
-class ID4_5(ID3):
+class C4_5(ID3):
     def __init__(self, ):
         super().__init__()
 
@@ -42,7 +42,7 @@ class ID4_5(ID3):
         return X.columns[feature_idx]
         
 if __name__ == "__main__":
-    dataset = "mushroom"
+    dataset = "mushroom"  # "watermelon" or "mushroom"
     if dataset == "watermelon":
         X, y = load_watermelonv2_data()
         title = "C4.5 Decision Tree on Watermelon v2.0"
@@ -56,7 +56,7 @@ if __name__ == "__main__":
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
-    model = ID4_5() # information gain ratio
+    model = C4_5() # information gain ratio
     model.fit(X_train, y_train)
     # model.print_tree()
     export_graphviz(model.root, title=title)
@@ -65,6 +65,3 @@ if __name__ == "__main__":
 
     acc = accuracy_score(y_test, y_hat)
     print(f"Accuracy on testing set: {acc:.4f}")
-
-
-
