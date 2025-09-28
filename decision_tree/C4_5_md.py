@@ -6,6 +6,7 @@ from sklearn.metrics import accuracy_score
 import pandas as pd
 
 # Implementation of C4.5 algorithm with missing value handling
+# using information gain ratio instead of information gain
 class C4_5_for_missing_data:
     def __init__(self,):
         super().__init__()

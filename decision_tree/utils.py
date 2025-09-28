@@ -18,6 +18,7 @@ class Node:
         self.cls_idx = cls_idx # is only valid when is_leaf is True
         self.children = {}
         self.children_weights = {}
+        self.threshold = None
 
 
 
