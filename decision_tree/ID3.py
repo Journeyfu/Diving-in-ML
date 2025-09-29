@@ -80,7 +80,6 @@ class ID3:
             node = node.children[value]
         return node.cls_idx
 
-        
     def print_tree(self, node=None, depth=0):
         if node is None:
             node = self.root

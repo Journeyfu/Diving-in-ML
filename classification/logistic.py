@@ -2,26 +2,33 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
 from sklearn.datasets import make_classification
+import pandas as pd 
 
 class LogisticRegression():
-    def __init__(self):
+    def __init__(self, lr=0.1, num_iters=2000):
         self.W = None
-        self.lr, self.num_iters = 0.1, 2000
+        self.lr, self.num_iters = lr, num_iters
     
     def sigmoid(self, z):
         return 1. / (1. + np.exp(-z))
     
-    def predict(self, X, is_expand=True): # X: n x d
+    def predict(self, X, is_expand=False): # X: n x d
         if not is_expand:
             X = np.hstack((X, np.ones((X.shape[0], 1))))
         return self.sigmoid(X @ self.W)
 
-    def fit(self, X, y):
+    def fit(self, X, y, draw=True):
+
+        if isinstance(X, pd.DataFrame):
+            X = X.to_numpy()
+            y = y.to_numpy().reshape(-1, 1)
+
         X_expand = np.hstack((X, np.ones((X.shape[0], 1))))
+
         self.W = np.random.randn(X_expand.shape[1], 1)
 
         for it in range(self.num_iters):
-            z = self.predict(X_expand) # N x 1
+            z = self.predict(X_expand, is_expand=True) # N x 1
             # non-vectorized version
             # grad = (y * (1 - z) * X_expand   + (1 - y) * (-X_expand) * z)
             # grad = grad.sum(axis=0)[:, None]
@@ -30,21 +37,22 @@ class LogisticRegression():
             grad = X_expand.T @ (z - y)
             self.W = self.W - self.lr * grad
 
-        y_hat = (self.predict(X_expand) > 0.5).astype(int)
+        if draw:
+            y_hat = (self.predict(X_expand, is_expand=True) > 0.5).astype(int)
 
-        y_hat = y_hat.reshape(-1)
-        y = y.reshape(-1)
-        plt.subplot(1, 2, 1)
-        plt.scatter(X[y==0, 0], X[y==0, 1], c='r', s=10)
-        plt.scatter(X[y==1, 0], X[y==1, 1], c='b', s=10)
-        plt.title("GT")
+            y_hat = y_hat.reshape(-1)
+            y = y.reshape(-1)
+            plt.subplot(1, 2, 1)
+            plt.scatter(X[y==0, 0], X[y==0, 1], c='r', s=10)
+            plt.scatter(X[y==1, 0], X[y==1, 1], c='b', s=10)
+            plt.title("GT")
 
-        plt.subplot(1, 2, 2)
-        plt.scatter(X[y_hat==0, 0], X[y_hat==0, 1], c='r', s=10)
-        plt.scatter(X[y_hat==1, 0], X[y_hat==1, 1], c='b', s=10)
-        plt.title("logitstic regression")
-        plt.subplots_adjust(wspace=1)
-        plt.show()
+            plt.subplot(1, 2, 2)
+            plt.scatter(X[y_hat==0, 0], X[y_hat==0, 1], c='r', s=10)
+            plt.scatter(X[y_hat==1, 0], X[y_hat==1, 1], c='b', s=10)
+            plt.title("logitstic regression")
+            plt.subplots_adjust(wspace=1)
+            plt.show()
 
     def plot_decision_boundary(self, X, y, steps=100):
         x_min, x_max = X[:,0].min() - 1, X[:,0].max() + 1
@@ -55,7 +63,7 @@ class LogisticRegression():
         grid = np.c_[xx.ravel(), yy.ravel()]
         grid_expand = np.hstack((grid, np.ones((grid.shape[0],1))))  # 加 bias
     
-        probs = self.predict(grid_expand).reshape(xx.shape)
+        probs = self.predict(grid_expand, is_expand=True).reshape(xx.shape)
     
         plt.contourf(xx, yy, probs, levels=[0,0.5,1], alpha=0.2, colors=['red','blue'])
         plt.scatter(X[y[:,0]==0,0], X[y[:,0]==0,1], c='r', s=10, label='Class 0 gt')

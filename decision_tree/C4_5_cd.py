@@ -150,9 +150,11 @@ class C4_5_for_continguous_data():
 if __name__ == "__main__":
     X, y = load_watermelonv3_data()
     title = "C4.5 Decision Tree on Watermelon v3.0"
+    continguous_features=X.columns.tolist()[-2:]
+    X = X[continguous_features] # only use the last two continuous features for testing, obtaining Figure 4.10 in the book
 
     model = C4_5_for_continguous_data() # information gain ratio
-    model.fit(X, y, continguous_features=X.columns.tolist()[-2:])
+    model.fit(X, y, continguous_features=continguous_features)
     export_graphviz(model.root, title=title)
 
     y_hat = model.predict(X)

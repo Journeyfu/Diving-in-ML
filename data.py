@@ -181,30 +181,37 @@ def load_watermelonv2alpha_data():
     X.loc[10, "触感"] = np.nan
     return X, y
 
-def load_watermelonv3_data():
-    # Create Zhou Zhihua Watermelon Dataset 3.0 (mixed features) as a pandas DataFrame
-    Xv2, y = load_watermelonv2_data()
+def load_watermelonv3alpha_data():
+    # Create Zhou Zhihua Watermelon Dataset 3.0 alpha (continguous features) as a pandas DataFrame
     data = [
-        (0.697, 0.460),
-        (0.774, 0.376),
-        (0.634, 0.264),
-        (0.608, 0.318),
-        (0.556, 0.215),
-        (0.403, 0.237),
-        (0.481, 0.149),
-        (0.437, 0.211),
-
-        (0.666, 0.091),
-        (0.243, 0.267),
-        (0.245, 0.057),
-        (0.343, 0.099),
-        (0.639, 0.161),
-        (0.657, 0.198),
-        (0.360, 0.370),
-        (0.593, 0.042),
-        (0.719, 0.103),
+        (0.697, 0.460, "是"),
+        (0.774, 0.376, "是"),
+        (0.634, 0.264, "是"),
+        (0.608, 0.318, "是"),
+        (0.556, 0.215, "是"),
+        (0.403, 0.237, "是"),
+        (0.481, 0.149, "是"),
+        (0.437, 0.211, "是"),
+                     
+        (0.666, 0.091, "否"),
+        (0.243, 0.267, "否"),
+        (0.245, 0.057, "否"),
+        (0.343, 0.099, "否"),
+        (0.639, 0.161, "否"),
+        (0.657, 0.198, "否"),
+        (0.360, 0.370, "否"),
+        (0.593, 0.042, "否"),
+        (0.719, 0.103, "否"),
     ]
-    X = pd.DataFrame(data, columns=["密度", "含糖率"])
+    data = pd.DataFrame(data, columns=["密度", "含糖率", "好瓜"])
+    X = data.drop(columns=["好瓜"])
+    y = data["好瓜"]
+
+    return X, y
+
+def load_watermelonv3_data():
+    Xv2, y = load_watermelonv2_data()
+    X, _ = load_watermelonv3alpha_data()
     X = pd.concat([Xv2, X], axis=1)
 
     return X, y

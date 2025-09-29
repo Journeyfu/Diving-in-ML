@@ -11,7 +11,7 @@ from io import BytesIO
 matplotlib.rcParams['font.sans-serif'] = ['Microsoft YaHei'] 
 matplotlib.rcParams['axes.unicode_minus'] = False
 
-class Node:
+class Node: # single variable node
     def __init__(self, feature=None, is_leaf=False, cls_idx=None):
         self.feature = feature # feature name to split on
         self.is_leaf = is_leaf 
@@ -20,7 +20,13 @@ class Node:
         self.children_weights = {}
         self.threshold = None
 
-
+class MV_Node: # multivariate node
+    def __init__(self, id=None, is_leaf=False, cls_idx=None, classifier=None, children={}):
+        self.id = id
+        self.cls_idx = cls_idx
+        self.is_leaf = is_leaf 
+        self.classifier = classifier # linear classifier
+        self.children = children
 
 def export_graphviz(root, title="C4.5 Decision Tree", bin_path=r"C:\apps\Graphviz\bin"):
 
