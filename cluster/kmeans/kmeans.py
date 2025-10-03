@@ -1,7 +1,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.datasets import make_blobs
+from sklearn.datasets import make_blobs, make_moons
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, adjusted_rand_score, normalized_mutual_info_score
 
@@ -13,7 +13,6 @@ class MyKmeans:
         self.n_iters = n_iters
         self.init = init
         self.rng = np.random.default_rng(random_state)
-
 
     def _init(self, X):
         if self.init == "random":
@@ -62,19 +61,21 @@ class MyKmeans:
 
 if __name__ == "__main__":
     
-    true_n_clusters = 10
+    true_n_clusters = 2
     X, y_true = make_blobs(
         n_samples=2000, centers=true_n_clusters, cluster_std=2, random_state=42
     )
+    # X, y_true = make_moons(n_samples=2000, noise=0.05, random_state=42) # failed for k-means
+
     plt.subplot(1, 4, 1)
 
     plt.title("GT")
     for k in range(true_n_clusters):
         plt.scatter(X[y_true == k, 0], X[y_true == k, 1], s=10)
 
-    m1 = MyKmeans(n_clusters=10, random_state=42, init="random")
-    m2 = MyKmeans(n_clusters=10, random_state=42, init="k-means++")
-    m3 = KMeans(n_clusters=10, random_state=42)
+    m1 = MyKmeans(n_clusters=true_n_clusters, random_state=42, init="random")
+    m2 = MyKmeans(n_clusters=true_n_clusters, random_state=42, init="k-means++")
+    m3 = KMeans(n_clusters  =true_n_clusters, random_state=42)
     
     for idx, (kmeans_obj, string) in enumerate(zip([m1, m2, m3], ["MyKmeans", "MyKmeans++", "scikit-learn"])):
         kmeans_obj.fit(X)
