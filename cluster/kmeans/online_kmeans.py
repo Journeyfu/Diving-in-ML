@@ -1,7 +1,9 @@
 # online kmeans clustering (competitive learning)
+import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.datasets import make_blobs
+from sklearn.metrics import silhouette_score, adjusted_rand_score, normalized_mutual_info_score
 
 class OnlineKMeans:
     def __init__(self, n_clusters=1, lr=0.5, random_state=0):
@@ -40,6 +42,7 @@ class OnlineKMeans:
 
 if __name__ == "__main__":
     true_n_clusters = 6
+    show_iter_process = True
     X, y_true = make_blobs(
         n_samples=500, centers=true_n_clusters, cluster_std=1.0, random_state=43, shuffle=True
     )
@@ -47,15 +50,18 @@ if __name__ == "__main__":
     all_y_pred = []
     x_lim = (X[:, 0].min() - 1, X[:, 0].max() + 1)
     y_lim = (X[:, 1].min() - 1, X[:, 1].max() + 1)
-    model = OnlineKMeans(n_clusters=true_n_clusters, random_state=42)
-    plt.ion()
 
+    model = OnlineKMeans(n_clusters=true_n_clusters, random_state=42)
+    if show_iter_process:
+        plt.ion()
 
     for i in range(len(X)):
-        x, y = X[i:i+1], y_true[i:i+1]
+        x, y = X[i:i+1], y_true[i:i+1].item()
         y_pred = model.one_sample_fit_and_predict(x)
         all_y_pred.append(y_pred)
 
+        if not show_iter_process:
+            continue
         # visualization
         plt.subplot(1, 2, 1)
         plt.scatter(X[:, 0], X[:, 1], c=y_true, s=10, cmap="jet")
@@ -64,10 +70,10 @@ if __name__ == "__main__":
         plt.subplot(1, 2, 2)
         plt.scatter(x[:, 0], x[:, 1], c=y_pred, s=8, cmap="jet")
         center = model.cluster_centers_
-        plt.scatter(center[:, 0], center[:, 1], c="red", s=50, marker="+")
+        plt.scatter(center[:, 0], center[:, 1], color="red", s=50, marker="+")
         if i > 0: # visualize previous points in gray
-            plt.scatter(X[:i, 0], X[:i, 1], c="gray", s=5, alpha=0.3)
-            plt.scatter(history_centers[:, 0], history_centers[:, 1], c="gray", s=50, marker="x", alpha=0.5)
+            plt.scatter(X[:i, 0], X[:i, 1], c=all_y_pred[:-1], s=5, alpha=0.3, cmap="jet")
+            plt.scatter(history_centers[:, 0], history_centers[:, 1], color="gray", s=50, marker="x", alpha=0.5)
 
         history_centers = center.copy()
         plt.title("Online Kmeans Clustering(iter {} / {})".format(i+1, len(X)))
@@ -76,7 +82,6 @@ if __name__ == "__main__":
         plt.show()
         plt.pause(0.001)
         plt.clf()
-
 
     all_y_pred = np.array(all_y_pred)
 
@@ -89,3 +94,19 @@ if __name__ == "__main__":
     plt.scatter(model.cluster_centers_[:, 0], model.cluster_centers_[:, 1], c="red", s=50, marker="x")
     plt.title("Online KmeansClustering")
     plt.show(block=True)
+
+    inertia = np.sum((X - model.cluster_centers_[all_y_pred])**2)
+    sil_score = silhouette_score(X, all_y_pred)
+    ari = adjusted_rand_score(y_true, all_y_pred)
+    nmi = normalized_mutual_info_score(y_true, all_y_pred)
+    print(f"Online KMeans results:")
+    print(f"Inertia (SSE): {inertia:.3f}" )
+    print(f"Silhouette Score: {sil_score:.3f}")
+    print(f"Adjusted Rand Index (ARI): {ari:.3f}")
+    print(f"Normalized Mutual Info (NMI): {nmi:.3f}")
+
+    # Online KMeans results:
+    # Inertia (SSE): 1486.956
+    # Silhouette Score: 0.525
+    # Adjusted Rand Index (ARI): 0.661
+    # Normalized Mutual Info (NMI): 0.780
