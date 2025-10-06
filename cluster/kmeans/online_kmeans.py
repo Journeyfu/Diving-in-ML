@@ -1,0 +1,91 @@
+# online kmeans clustering (competitive learning)
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_blobs
+
+class OnlineKMeans:
+    def __init__(self, n_clusters=1, lr=0.5, random_state=0):
+        self.n_clusters = n_clusters
+        self.rng = np.random.default_rng(random_state)
+        self.cluster_centers_ = None
+        self.counts = None
+        self.lr = lr
+    
+    def one_sample_fit_and_predict(self, X): 
+        assert X.shape[0] == 1, "X should be a single sample, 1 x n_features"
+        if self.cluster_centers_ is None:
+            self.cluster_centers_ = X.copy()
+            self.counts = np.ones(1)
+            return 0
+
+        if len(self.cluster_centers_) < self.n_clusters:
+            self.cluster_centers_ = np.vstack([self.cluster_centers_, X])
+            self.counts = np.append(self.counts, 1)
+            return len(self.cluster_centers_) - 1
+
+        pred = self.predict(X)
+        self.counts[pred] += 1
+
+        eta = self.lr / (1 + 0.1 * self.counts[pred]) # learning rate
+        self.cluster_centers_[pred] += eta * (X.squeeze(axis=0) - self.cluster_centers_[pred])
+
+        return pred.item()
+            
+
+    def predict(self, X):
+        dist = np.linalg.norm(X[:, None] - self.cluster_centers_[None], axis=-1)
+        return np.argmin(dist, axis=1)
+    
+
+
+if __name__ == "__main__":
+    true_n_clusters = 6
+    X, y_true = make_blobs(
+        n_samples=500, centers=true_n_clusters, cluster_std=1.0, random_state=43, shuffle=True
+    )
+
+    all_y_pred = []
+    x_lim = (X[:, 0].min() - 1, X[:, 0].max() + 1)
+    y_lim = (X[:, 1].min() - 1, X[:, 1].max() + 1)
+    model = OnlineKMeans(n_clusters=true_n_clusters, random_state=42)
+    plt.ion()
+
+
+    for i in range(len(X)):
+        x, y = X[i:i+1], y_true[i:i+1]
+        y_pred = model.one_sample_fit_and_predict(x)
+        all_y_pred.append(y_pred)
+
+        # visualization
+        plt.subplot(1, 2, 1)
+        plt.scatter(X[:, 0], X[:, 1], c=y_true, s=10, cmap="jet")
+        plt.title("GT")
+
+        plt.subplot(1, 2, 2)
+        plt.scatter(x[:, 0], x[:, 1], c=y_pred, s=8, cmap="jet")
+        center = model.cluster_centers_
+        plt.scatter(center[:, 0], center[:, 1], c="red", s=50, marker="+")
+        if i > 0: # visualize previous points in gray
+            plt.scatter(X[:i, 0], X[:i, 1], c="gray", s=5, alpha=0.3)
+            plt.scatter(history_centers[:, 0], history_centers[:, 1], c="gray", s=50, marker="x", alpha=0.5)
+
+        history_centers = center.copy()
+        plt.title("Online Kmeans Clustering(iter {} / {})".format(i+1, len(X)))
+        plt.xlim(x_lim)
+        plt.ylim(y_lim)
+        plt.show()
+        plt.pause(0.001)
+        plt.clf()
+
+
+    all_y_pred = np.array(all_y_pred)
+
+    plt.ioff()
+    plt.subplot(1, 2, 1)
+    plt.scatter(X[:, 0], X[:, 1], c=y_true, s=10, cmap="jet")
+    plt.title("GT")
+    plt.subplot(1, 2, 2)
+    plt.scatter(X[:, 0], X[:, 1], c=all_y_pred, s=10, cmap="jet")
+    plt.scatter(model.cluster_centers_[:, 0], model.cluster_centers_[:, 1], c="red", s=50, marker="x")
+    plt.title("Online KmeansClustering")
+    plt.show(block=True)
