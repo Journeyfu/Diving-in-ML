@@ -1,9 +1,8 @@
-# learning Vector Quantization (LVQ) clustering example
+# learning Vector Quantization (LVQ) clustering
 # supervised learning algorithm
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.datasets import make_blobs
-from sklearn.metrics import silhouette_score, adjusted_rand_score, normalized_mutual_info_score
 class LVQ1:
     def __init__(self, n_prototypes_per_class=1, learning_rate=0.01, n_epochs=100):
         self.n_prototypes_per_class = n_prototypes_per_class
@@ -46,8 +45,6 @@ if __name__ == "__main__":
     X, y_true = make_blobs(
         n_samples=2000, centers=true_n_clusters, cluster_std=2, random_state=42
     )
-    indices = np.random.permutation(len(X))
-    X, y_true = X[indices], y_true[indices]
 
     model = LVQ1(n_prototypes_per_class=3, learning_rate=0.01, n_epochs=20)
     model.fit(X, y_true)
@@ -57,6 +54,7 @@ if __name__ == "__main__":
     plt.scatter(X[:, 0], X[:, 1], c=y_true, s=10, cmap="jet")
     plt.title("GT")
     plt.subplot(1, 2, 2)
-    plt.scatter(X[:, 0], X[:, 1], c=y_pred, s=10, cmap="jet")
+    plt.scatter(X[:, 0], X[:, 1], c=y_pred, s=10, alpha=0.5, cmap="jet")
+    plt.scatter(model.prototypes[:, 0], model.prototypes[:, 1], c=model.prototype_labels, s=50, marker='x', cmap="jet")
     plt.title("LVQ Clustering")
     plt.show()

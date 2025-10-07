@@ -124,11 +124,11 @@ if __name__ == "__main__":
     plt.subplot(1, 3, 1)
     plt.scatter(X[:, 0], X[:, 1], c=y_true, s=10, cmap="jet")
     plt.title("GT")
+
     plt.subplot(1, 3, 2)
     plt.scatter(X[:, 0], X[:, 1], c="gray", s=10, cmap="jet")
     plt.scatter(model.old_cluster_centers_[:, 0], model.old_cluster_centers_[:, 1], c=np.arange(true_n_clusters), s=50, marker="*", cmap="jet")
-    plt.title("Online Center Before Warnup", fontsize=8)
-
+    plt.title("Online Center Before Warmup", fontsize=8)
 
     plt.subplot(1, 3, 3)
 

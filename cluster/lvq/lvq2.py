@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.datasets import make_blobs
 
+# LVQ2 updates the two closest prototypes of different classes if they are within a certain window
 class LVQ2:
     def __init__(self, n_prototypes_per_class=1, learning_rate=0.01, n_epochs=100, epsilon=0.2):
         self.n_prototypes_per_class = n_prototypes_per_class
