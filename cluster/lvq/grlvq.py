@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.datasets import make_blobs
 
-class GLVQ:
+class GRLVQ:
     def __init__(self, n_prototypes_per_class=1, learning_rate=0.01, n_epochs=100, phi="identity", random_state=0):
         self.n_prototypes_per_class = n_prototypes_per_class
         self.learning_rate = learning_rate
@@ -11,6 +11,7 @@ class GLVQ:
         self.phi = phi
         self.random_state = random_state
         self.rng = np.random.default_rng(self.random_state)
+
 
     def get_phi_grad(self, x):
         if self.phi == "identity":
@@ -20,6 +21,10 @@ class GLVQ:
             return s * (1 - s)
         else:
             raise ValueError("Unknown phi function")
+    
+    def softmax(self, x, axis=0):
+        e_x = np.exp(x - np.max(x, axis=axis, keepdims=True))
+        return e_x / np.sum(e_x, axis=axis, keepdims=True)
 
     def fit(self, X, y):
         classes = np.unique(y)
@@ -35,6 +40,9 @@ class GLVQ:
         self.prototypes = np.vstack(self.prototypes)
         self.prototype_labels = np.array(self.prototype_labels)
 
+    
+        self.alpha_array = np.ones(X.shape[1])
+
         for epoch in range(self.n_epochs):
             eta = self.learning_rate * (1 - epoch / self.n_epochs)
             order = self.rng.permutation(len(X))
@@ -42,7 +50,10 @@ class GLVQ:
             for i in order:
                 xi, yi = X[i], y[i]
 
-                dists = np.sum((self.prototypes - xi) ** 2, axis=1)
+                
+                lambda_array = self.softmax(self.alpha_array, axis=0)
+                dists = np.sum(lambda_array * (self.prototypes - xi) ** 2, axis=1)
+
 
                 mask_pos = (self.prototype_labels == yi)
                 mask_neg = ~mask_pos
@@ -55,15 +66,29 @@ class GLVQ:
                     continue
 
                 diff = (dp - dn) / S
-                g = self.get_phi_grad(diff)
+                phi_grad = self.get_phi_grad(diff)
 
-                self.prototypes[idx_p] += eta * g * (4 * dn / S ** 2) * (xi - self.prototypes[idx_p])
-                self.prototypes[idx_n] += eta * g * (4 * dp / S ** 2) * (self.prototypes[idx_n] - xi)
+                self.prototypes[idx_p] += eta * phi_grad * (4 * dn / S ** 2) * lambda_array * (xi - self.prototypes[idx_p])
+                self.prototypes[idx_n] += eta * phi_grad * (4 * dp / S ** 2) * lambda_array * (self.prototypes[idx_n] - xi)
+
+
+                # oaw loss with respect to alpha
+
+                pos_j = (xi - self.prototypes[idx_p]) ** 2
+                neg_j = (xi - self.prototypes[idx_n]) ** 2
+
+                dE_dlambda = phi_grad * 2 * (dn * pos_j - dp * neg_j) / (S ** 2)
+
+                # chain rule through softmax
+                dE_dalpha = lambda_array * (dE_dlambda - np.dot(dE_dlambda, lambda_array))
+
+                self.alpha_array -= eta * dE_dalpha
 
         return self
 
     def predict(self, X):
-        dmat = np.sum((X[:, None, :] - self.prototypes[None, :, :]) ** 2, axis=2)
+        diff = X[:, None] - self.prototypes[None, :]
+        dmat = np.einsum("nmd, d, nmd -> nm", diff, self.softmax(self.alpha_array), diff)
         idx = np.argmin(dmat, axis=1)
         return self.prototype_labels[idx]
 
@@ -77,7 +102,7 @@ if __name__ == "__main__":
         n_samples=2000, centers=true_n_clusters, cluster_std=2, random_state=42, shuffle=True
     )
 
-    model = GLVQ(n_prototypes_per_class=3, learning_rate=0.01, n_epochs=20)
+    model = GRLVQ(n_prototypes_per_class=3, learning_rate=0.01, n_epochs=20)
     model.fit(X, y_true)
     y_pred = model.predict(X)
 
@@ -86,5 +111,7 @@ if __name__ == "__main__":
     plt.title("GT")
     plt.subplot(1, 2, 2)
     plt.scatter(X[:, 0], X[:, 1], c=y_pred, s=10, cmap="jet")
-    plt.title("GLVQ Clustering")
+    plt.title("GRLVQ Clustering")
     plt.show()
+    print("results of lambda array: ",  model.softmax(model.alpha_array))
+    # results of lambda array:  [0.58039342 0.41960658]
