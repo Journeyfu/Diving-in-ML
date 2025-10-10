@@ -5,6 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from sklearn.datasets import load_iris
 from ucimlrepo import fetch_ucirepo
 import seaborn as sns
+from filterpy.common import Q_discrete_white_noise
 
 
 def get_2d_mixture_data(n, n_ctr, seed=42):
@@ -220,6 +221,23 @@ def load_titanic_data():
     titanic = sns.load_dataset("titanic")
     X, y = titanic.drop(columns=["survived"]), titanic["survived"]
     return X, y
+
+def generate_multi_target_toy(n_targets=3, n_steps=50, noise_std=1.0, seed=0):
+    np.random.seed(seed)
+    F = np.array([[1, 1],
+                  [0, 1]])
+    Q = Q_discrete_white_noise(dim=2, dt=1, var=0.1)
+    H = np.array([[1, 0]])
+
+    data = []
+    for target_id in range(n_targets):
+        x = np.array([[np.random.uniform(0, 50)],
+                      [np.random.uniform(-2, 2)]])
+        for t in range(n_steps):
+            x = F @ x + np.random.multivariate_normal([0, 0], Q).reshape(2, 1)
+            z = x[0, 0] + np.random.normal(0, noise_std)
+            data.append([t, target_id, z])
+    return np.array(data)
 
 if __name__ == "__main__":
     # Example usage
